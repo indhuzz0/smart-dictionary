@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Smart Dictionary</title>
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#f5e6dc,#e8d5c4);
+    font-family:'Segoe UI',sans-serif;
+}
+
+.container{
+    background:#fff5ec;
+    padding:50px;
+    border-radius:35px;
+    width:550px;
+    text-align:center;
+    box-shadow:0 15px 40px rgba(0,0,0,0.15);
+}
+
+h1{
+    color:#9c6644;
+}
+
+input{
+    padding:14px;
+    width:65%;
+    border-radius:15px;
+    border:none;
+    background:#f3e1d3;
+}
+
+button{
+    padding:14px 25px;
+    border:none;
+    border-radius:15px;
+    background:#ddb892;
+    color:white;
+    cursor:pointer;
+}
+
+.resultBox{
+    margin-top:30px;
+    background:#faedcd;
+    padding:25px;
+    border-radius:20px;
+    text-align:left;
+    line-height:1.7;
+}
+
+.title{
+    font-weight:bold;
+    margin-top:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📖 Smart Dictionary</h1>
+
+<input id="word" placeholder="Enter word">
+<button onclick="searchWord()">Search</button>
+
+<div class="resultBox" id="result"></div>
+
+</div>
+
+<script>
+
+async function translate(text, from, to){
+let res=await fetch(
+"https://api.mymemory.translated.net/get?q="+text+"&langpair="+from+"|"+to
+);
+let data=await res.json();
+return data.responseData.translatedText;
+}
+
+async function searchWord(){
+
+let word=document.getElementById("word").value.trim();
+let result=document.getElementById("result");
+
+if(word===""){
+alert("Word enter pannunga");
+return;
+}
+
+result.innerHTML="Loading...";
+
+try{
+
+let res=await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/"+word);
+let data=await res.json();
+
+let meaning=data[0].meanings[0].definitions[0].definition;
+
+/* -------- Example search -------- */
+let example="";
+
+for(let m of data[0].meanings){
+for(let d of m.definitions){
+if(d.example){
+example=d.example;
+break;
+}
+}
+if(example) break;
+}
+
+/* -------- Auto example if not found -------- */
+if(!example){
+example="People often use the word '"+word+"' in daily conversations to express their thoughts clearly.";
+}
+
+/* Tamil translation */
+let tamilMeaning=await translate(meaning,"en","ta");
+let tamilExample=await translate(example,"en","ta");
+
+result.innerHTML=`
+
+<div class="title">English Meaning</div>
+${meaning}
+
+<div class="title">Tamil Meaning</div>
+${tamilMeaning}
+
+<div class="title">English Example</div>
+${example}
+
+<div class="title">Tamil Example</div>
+${tamilExample}
+
+`;
+
+}
+catch{
+result.innerHTML="❌ Word not found";
+}
+
+}
+</script>
+
+</body>
+</html>
